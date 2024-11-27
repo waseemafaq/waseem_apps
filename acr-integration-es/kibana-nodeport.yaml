@@ -1,0 +1,39 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-cluster
+  namespace: elasticsearch
+spec:
+  version: 8.4.3
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch-cluster
+  http:
+    service:
+      spec:
+        type: NodePort          # Changed to NodePort
+        ports:
+          - port: 5601          # Default Kibana port
+            targetPort: 5601
+            nodePort: 30005     # Custom NodePort, can be any valid port
+    tls:
+      certificate: {}
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          # Update the image to point to your ACR
+          image: waseemacr.azurecr.io/kibana/kibana:8.4.3
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2560Mi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+  monitoring:
+    logs: {}
+    metrics: {}

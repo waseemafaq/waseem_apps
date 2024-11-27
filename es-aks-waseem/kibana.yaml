@@ -1,0 +1,43 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-cluster
+  namespace: elasticsearch
+spec:
+  version: 8.12.0
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch-cluster
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2560Mi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      # tolerations:
+      #   - key: "elasticsearch"
+      #     operator: "Equal"
+      #     value: "true"
+      #     effect: "NoSchedule"
+      # nodeSelector:
+      #   elasticsearch: "esdata"
+  http:
+    service:
+      metadata:
+        annotations:
+          service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+      spec:
+        type: LoadBalancer
+    tls:
+      certificate: {}
+  monitoring:
+    logs: {}
+    metrics: {}

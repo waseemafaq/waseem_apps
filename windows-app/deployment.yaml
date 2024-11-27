@@ -1,0 +1,32 @@
+# windows-app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: windows-app-deployment
+  namespace: windows-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: windows-app
+  template:
+    metadata:
+      labels:
+        app: windows-app
+    spec:
+      # Tolerations to allow pods to run on tainted nodes
+      tolerations:
+      - key: "nodepool"
+        operator: "Equal"
+        value: "waseemapp"
+        effect: "NoSchedule"
+      # Node selector to target the wrkwas node pool
+      nodeSelector:
+        agentpool: wrkwas  # Ensure this matches the label on your node pool
+      containers:
+      - name: windows-app
+        image: mcr.microsoft.com/windows/servercore:ltsc2022  # Windows Server Core image
+        command: ["powershell", "-Command"]
+        args: ["Start-Sleep", "3600"]  # Keeps the pod running for testing purposes
+        ports:
+        - containerPort: 80

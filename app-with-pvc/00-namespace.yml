@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-with-pvc
+
+#   - Username: admin101
+#   - Password: password101

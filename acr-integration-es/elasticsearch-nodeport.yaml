@@ -1,0 +1,63 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-cluster
+  namespace: elasticsearch
+spec:
+  version: 8.4.3
+  volumeClaimDeletePolicy: DeleteOnScaledownAndClusterDeletion
+  nodeSets:
+    - name: icidata
+      count: 2
+      config:
+        node.store.allow_mmap: true
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              # Update the image to point to your ACR
+              image: waseemacr.azurecr.io/elasticsearch/elasticsearch:8.4.3
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+                requests:
+                  cpu: "1"
+                  memory: 4Gi
+          initContainers:
+            - name: sysctl
+              command:
+                - sh
+                - -c
+                - sysctl -w vm.max_map_count=262144
+              resources: {}
+              securityContext:
+                privileged: true
+                runAsUser: 0
+          tolerations:
+            - key: "elasticsearch"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+          nodeSelector:
+            elasticsearch: "esdata"
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+            storageClassName: ici-premium-disk
+  http:
+    service:
+      spec:
+        type: NodePort          # Changed to NodePort
+        ports:
+          - port: 9200          # Default Elasticsearch port
+            targetPort: 9200
+            nodePort: 30009     # Custom NodePort, can be any valid port
+  transport:
+    service:
+      spec: {}

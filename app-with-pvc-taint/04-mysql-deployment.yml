@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: app-with-pvc
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate 
+  template: 
+    metadata: 
+      labels: 
+        app: mysql
+    spec: 
+      tolerations:
+        - key: "nodepool"
+          operator: "Equal"
+          value: "waseemapp"
+          effect: "NoSchedule"
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: dbpassword11
+          ports:
+            - containerPort: 3306
+              name: mysql    
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql    
+            - name: usermanagement-dbcreation-script
+              mountPath: /docker-entrypoint-initdb.d                                            
+      volumes: 
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: azure-managed-disk-pvc
+        - name: usermanagement-dbcreation-script
+          configMap:
+            name: usermanagement-dbcreation-script

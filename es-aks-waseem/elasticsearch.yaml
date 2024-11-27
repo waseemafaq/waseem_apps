@@ -1,0 +1,70 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-cluster
+  namespace: elasticsearch
+spec:
+  version: 8.12.0
+  volumeClaimDeletePolicy: DeleteOnScaledownAndClusterDeletion
+  nodeSets:
+    - name: icidata
+      count: 3
+      config:
+        node.store.allow_mmap: true
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+                requests:
+                  cpu: "1"
+                  memory: 2Gi
+          initContainers:
+            - name: sysctl
+              command:
+                - sh
+                - -c
+                - sysctl -w vm.max_map_count=262144
+              resources: {}
+              securityContext:
+                privileged: true
+                runAsUser: 0
+          # tolerations:
+          #   - key: "elasticsearch"
+          #     operator: "Equal"
+          #     value: "true"
+          #     effect: "NoSchedule"
+          # nodeSelector:
+          #   elasticsearch: "esdata"
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+            storageClassName: ici-premium-disk
+  http:
+    service:
+      metadata:
+        annotations:
+          service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+      spec:
+        type: LoadBalancer
+  transport:
+    service:
+      spec: {}
+  monitoring:
+    logs: {}
+    metrics: {}
+  secureSettings:
+    - secretName: elasticsearch-secure-settings
+      entries:
+        - key: account
+          path: azure.client.default.account
+        - key: key
+          path: azure.client.default.key

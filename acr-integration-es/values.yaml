@@ -1,0 +1,5 @@
+# values.yaml
+operator:
+  image:
+    repository: waseemacr.azurecr.io/eck/eck-operator  # Replace with your ACR name
+    tag: 2.4.0                                          # The tag of the operator image
