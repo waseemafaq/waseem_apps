@@ -35,3 +35,15 @@ kubectl apply -f storageclass.yaml
 # Apply elastic search yaml
 kubectl apply -f elasticsearch.yaml
 kubectl apply -f kibana.yaml
+
+# Deleting es
+helm uninstall elastic-operator -n elastic-system
+kubectl delete namespace elastic-system
+
+kubectl delete namespace elasticsearch
+kubectl delete namespace kibana
+
+# Verify cleanup
+kubectl get all -A | grep elastic
+kubectl get crds | grep elastic
+kubectl get pvc -A | grep elastic

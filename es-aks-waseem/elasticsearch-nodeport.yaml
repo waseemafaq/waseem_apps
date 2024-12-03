@@ -46,7 +46,7 @@ spec:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 5Gi
+                storage: 500Gi
             storageClassName: ici-premium-disk
   http:
     service:
